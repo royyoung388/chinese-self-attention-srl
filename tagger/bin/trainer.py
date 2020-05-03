@@ -74,7 +74,7 @@ def default_params():
         fixed_batch_size=False,
         min_length=1,
         max_length=256,
-        buffer_size=10000,
+        buffer_size=1024,
         # Initialization
         initializer_gain=1.0,
         initializer="uniform_unit_scaling",
@@ -366,12 +366,17 @@ def main(args):
     counter = 0
     should_save = False
 
+    # if params.script:
+    #     thread = ValidationWorker(daemon=True)
+    #     thread.init(params)
+    #     thread.start()
+    # else:
+    #     thread = None
+
     if params.script:
-        thread = ValidationWorker(daemon=True)
-        thread.init(params)
-        thread.start()
+        valiation = ValidationWorker(params)
     else:
-        thread = None
+        valiation = None
 
     def step_fn(features, step):
         t = time.time()
@@ -380,7 +385,7 @@ def main(args):
         gradients = optimizer.compute_gradients(loss,
                                                 list(model.parameters()))
         if params.clip_grad_norm:
-             torch.nn.utils.clip_grad_norm_(model.parameters(),
+            torch.nn.utils.clip_grad_norm_(model.parameters(),
                                            params.clip_grad_norm)
 
         optimizer.apply_gradients(zip(gradients,
@@ -401,8 +406,8 @@ def main(args):
     try:
         while True:
             for features in dataset:
-                if thread.is_early_stopping():
-                    return
+                # if valiation.is_early_stopping():
+                #     return
 
                 if counter % params.update_cycle == 0:
                     step += 1
@@ -411,12 +416,20 @@ def main(args):
 
                 counter += 1
                 step_fn(features, step)
+                del features
+                # for f in features:
+                #     if type(f) == dict:
+                #         for i in f.values():
+                #             i.dispose()
+                #     else:
+                #         f.dispose()
 
                 if step % params.save_checkpoint_steps == 0:
                     if should_save:
                         plt.plot(loss_record[0], loss_record[1])
                         plt.savefig(os.path.join(params.output, "loss.png"))
                         save_checkpoint(step, epoch, model, optimizer, params, loss_record)
+                        valiation.val()
                         should_save = False
 
                 if step >= params.train_steps:
@@ -424,6 +437,7 @@ def main(args):
                         plt.plot(loss_record[0], loss_record[1])
                         plt.savefig(os.path.join(params.output, "loss.png"))
                         save_checkpoint(step, epoch, model, optimizer, params, loss_record)
+                        valiation.val()
 
                     if dist.get_rank() == 0:
                         summary.close()
@@ -432,9 +446,8 @@ def main(args):
 
             epoch += 1
     finally:
-        if thread is not None:
-            thread.stop()
-            thread.join()
+        if valiation is not None:
+            valiation.stop()
 
 
 # Wrap main function

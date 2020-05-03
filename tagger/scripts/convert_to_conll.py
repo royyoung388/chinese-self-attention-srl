@@ -2,6 +2,7 @@
 # author: Playinf
 # email: playinf@stu.xmu.edu.cn
 
+import cgitb
 import sys
 
 
@@ -81,7 +82,7 @@ def print_to_conll(pred_labels, gold_props_file, output_filename):
             print_sentence_to_conll(
                 fout,
                 tokens_buf,
-                pred_labels[seq_ptr:seq_ptr+num_props_for_sentence]
+                pred_labels[seq_ptr:seq_ptr + num_props_for_sentence]
             )
             seq_ptr += num_props_for_sentence
             tokens_buf = []
@@ -96,13 +97,14 @@ def print_to_conll(pred_labels, gold_props_file, output_filename):
         print_sentence_to_conll(
             fout,
             tokens_buf,
-            pred_labels[seq_ptr:seq_ptr+num_props_for_sentence]
+            pred_labels[seq_ptr:seq_ptr + num_props_for_sentence]
         )
 
     fout.close()
 
 
 if __name__ == "__main__":
+    cgitb.enable(format='text')
     all_labels = []
     with open(sys.argv[1]) as fd:
         for text_line in fd:

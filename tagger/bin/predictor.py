@@ -6,10 +6,14 @@ from __future__ import division
 from __future__ import print_function
 
 import argparse
+import cgitb
 import logging
 import os
-import six
 import time
+
+import numpy as np
+
+import six
 import torch
 
 import tagger.data as data
@@ -56,7 +60,7 @@ def default_params():
         eos="<eos>",
         unk="<unk>",
         device=0,
-        decode_batch_size=128
+        decode_batch_size=16
     )
 
     return params
@@ -172,6 +176,8 @@ def main(args):
 
             labels = model.argmax_decode(features)
             batch = convert_to_string(features["inputs"], labels, params)
+            del features
+            del labels
 
             for seq in batch:
                 fd.write(seq)
@@ -180,8 +186,12 @@ def main(args):
             t = time.time() - t
             print("Finished batch: %d (%.3f sec)" % (counter, t))
 
+        del dataset
+        fd.flush()
         fd.close()
 
 
 if __name__ == "__main__":
+    cgitb.enable(format='text')
+    print('predictor start')
     main(parse_args())

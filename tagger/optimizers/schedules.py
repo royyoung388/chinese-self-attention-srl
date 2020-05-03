@@ -5,6 +5,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import matplotlib.pyplot as plt
+import numpy as np
 
 import tagger.utils as utils
 import tagger.utils.summary as summary
@@ -16,12 +18,11 @@ class LearningRateSchedule(object):
         raise NotImplementedError("Not implemented.")
 
     def get_config(self):
-      raise NotImplementedError("Not implemented.")
+        raise NotImplementedError("Not implemented.")
 
     @classmethod
     def from_config(cls, config):
-      return cls(**config)
-
+        return cls(**config)
 
 
 class LinearWarmupRsqrtDecay(LearningRateSchedule):
@@ -144,18 +145,19 @@ class LinearExponentialDecay(LearningRateSchedule):
             "start_decay_step": self._start_decay_step,
             "end_decay_step": self._end_decay_step,
         }
+
+
 class LearningRateSchedule(object):
 
     def __call__(self, step):
         raise NotImplementedError("Not implemented.")
 
     def get_config(self):
-      raise NotImplementedError("Not implemented.")
+        raise NotImplementedError("Not implemented.")
 
     @classmethod
     def from_config(cls, config):
-      return cls(**config)
-
+        return cls(**config)
 
 
 class LinearWarmupRsqrtDecay(LearningRateSchedule):
@@ -278,3 +280,12 @@ class LinearExponentialDecay(LearningRateSchedule):
             "start_decay_step": self._start_decay_step,
             "end_decay_step": self._end_decay_step,
         }
+
+
+if __name__ == '__main__':
+    opts = [LinearWarmupRsqrtDecay(0.5, 1000),
+            LinearWarmupRsqrtDecay(0.5, 3000),
+            LinearWarmupRsqrtDecay(1, 1000)]
+    plt.plot(np.arange(1, 5000), [[opt(i) for opt in opts] for i in range(1, 5000)])
+    plt.legend(["0.5:500", "0.5:1000", "1:500"])
+    plt.show()

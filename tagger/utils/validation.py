@@ -1,11 +1,5 @@
-# validation.py
-# author: Playinf
-# email: playinf@stu.xmu.edu.cn
-
 import os
 import subprocess
-import threading
-import time
 
 from tagger.utils.checkpoint import latest_checkpoint
 
@@ -86,99 +80,102 @@ def add_to_record(record, item, capacity):
     return added, removed, record
 
 
-class ValidationWorker(threading.Thread):
+class ValidationWorker(object):
 
-    def init(self, params):
+    def __init__(self, params):
         self._params = params
         self._stop_end = False
         self.best_score = 0
         self.best_count = 0
         self.early_stopping = False
 
-    def is_early_stopping(self):
-        return self.early_stopping
-
-    def run(self):
-        params = self._params
         best_dir = params.output + "/best"
-        last_checkpoint = None
 
         # create directory
         if not os.path.exists(best_dir):
             os.mkdir(best_dir)
-            record = []
+            self.record = []
         else:
-            record = read_record(best_dir + "/top")
+            self.record = read_record(best_dir + "/top")
 
-        while not self._stop_end:
-            try:
-                time.sleep(params.frequency)
-                model_name = latest_checkpoint(params.output)
+    def is_early_stopping(self):
+        return self.early_stopping
 
-                if model_name is None:
-                    continue
+    def val(self):
+        params = self._params
+        best_dir = params.output + "/best"
+        last_checkpoint = None
 
-                if model_name == last_checkpoint:
-                    continue
+        try:
+            model_name = latest_checkpoint(params.output)
 
-                last_checkpoint = model_name
+            if model_name is None:
+                return
 
-                model_name = model_name.split("/")[-1]
-                # prediction and evaluation
-                child = subprocess.Popen("bash %s" % params.script,
-                                         shell=True, stdout=subprocess.PIPE,
-                                         stderr=subprocess.PIPE)
-                info = child.communicate()[0]
+            if model_name == last_checkpoint:
+                return
 
-                if not info:
-                    continue
+            last_checkpoint = model_name
 
-                info = info.strip().split(b"\n")
-                overall = None
+            model_name = model_name.split("/")[-1]
+            # prediction and evaluation
+            child = subprocess.Popen("bash %s" % params.script,
+                                     shell=True, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+            info = child.communicate()
+            print(info)
+            info = info[0]
 
-                for line in info[::-1]:
-                    if line.find(b"Overall") > 0:
-                        overall = line
-                        break
+            if not info:
+                return
 
-                if not overall:
-                    continue
+            info = info.strip().split(b"\n")
+            overall = None
 
-                f_score = float(overall.strip().split()[-1])
-                print(f_score)
+            for line in info[::-1]:
+                if line.find(b"Overall") > 0:
+                    overall = line
+                    break
 
-                # save best model
-                item = (f_score, model_name)
-                added, removed, record = add_to_record(record, item,
-                                                       params.keep_top_k)
-                log_fd = open(best_dir + "/log", "a")
-                log_fd.write("%s: %f\n" % (model_name, f_score))
-                log_fd.close()
+            if not overall:
+                return
 
-                if added is not None:
-                    model_path = params.output + "/" + model_name + "*"
-                    # copy model
-                    os.system("cp %s %s" % (model_path, best_dir))
-                    # update checkpoint
-                    write_record(best_dir + "/top", record)
-                    write_checkpoint(best_dir + "/checkpoint", record)
+            f_score = float(overall.strip().split()[-1])
+            print(f_score)
 
-                if removed is not None:
-                    # remove old model
-                    model_name = params.output + "/best/" + removed + "*"
-                    os.system("rm %s" % model_name)
+            # save best model
+            item = (f_score, model_name)
+            added, removed, self.record = add_to_record(self.record, item,
+                                                        params.keep_top_k)
+            log_fd = open(best_dir + "/log", "a")
+            log_fd.write("%s: %f\n" % (model_name, f_score))
+            log_fd.close()
 
-                # early stopping
-                if f_score > self.best_score:
-                    self.best_score = f_score
-                else:
-                    self.best_count += 1
+            if added is not None:
+                model_path = params.output + "/" + model_name + "*"
+                # copy model
+                os.system("cp %s %s" % (model_path, best_dir))
+                # update checkpoint
+                write_record(best_dir + "/top", self.record)
+                write_checkpoint(best_dir + "/checkpoint", self.record)
 
-                if self.best_count >= params.early_stopping:
-                    self.early_stopping = True
+            if removed is not None:
+                # remove old model
+                model_name = params.output + "/best/" + removed + "*"
+                os.system("rm %s" % model_name)
 
-            except Exception as e:
-                print(e)
+            # early stopping
+            if f_score > self.best_score:
+                self.best_score = f_score
+                self.best_count = 0
+            else:
+                self.best_count += 1
+
+            if self.best_count >= params.early_stopping:
+                self.early_stopping = True
+
+        except Exception as e:
+            print(e)
 
     def stop(self):
         self._stop_end = True

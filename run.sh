@@ -14,12 +14,15 @@ python $TAGGERPATH/tagger/bin/trainer.py \
   --input $DATAPATH/conll2012.train.txt \
   --output train \
   --vocabulary $DATAPATH/vocab.txt $DATAPATH/label.txt \
-  --parameters="save_summary=false,feature_size=100,hidden_size=200,filter_size=800,"`
-               `"residual_dropout=0.2,num_hidden_layers=10,attention_dropout=0.1,"`
-               `"relu_dropout=0.1,batch_size=2048,optimizer=adadelta,initializer=orthogonal,"`
-               `"initializer_gain=1.0,train_steps=100000,"`
+  --parameters="save_summary=false,feature_size=300,hidden_size=600,filter_size=800,"`
+               `"residual_dropout=0.5,num_hidden_layers=8,attention_dropout=0.3,"`
+               `"relu_dropout=0.3,batch_size=128,optimizer=adadelta,initializer=orthogonal,"`
+               `"initializer_gain=1.0,train_steps=500000,"`
                `"learning_rate_schedule=piecewise_constant_decay,"`
-               `"learning_rate_values=[1.0,0.1,0.01,0.001,0.0001],"`
-               `"learning_rate_boundaries=[2000,10000,50000,80000],device_list=$DEVICE,"`
-               `"clip_grad_norm=1.0,script=validation.sh"
+               `"learning_rate=1,warmup_steps=4000,plot_step=200,"`
+               `"learning_rate_values=[1.0,0.5,0.25],learning_rate_boundaries=[300000,400000],"`
+               `"save_checkpoint_steps=1000,early_stopping=10,save_checkpoint_steps=1500,"`
+               `"device_list=$DEVICE,clip_grad_norm=1.0,script=validation.sh,"`
+               `"buffer_size=512,"
 # ,embedding=$EMBPATH/glove.6B.100d.txt
+#[1.0,0.5,0.25,],[400000,50000],

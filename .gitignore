@@ -215,3 +215,5 @@ cython_debug/
 
 /data/*
 /train*
+/output
+/tmp.txt

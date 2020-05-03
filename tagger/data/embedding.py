@@ -15,6 +15,8 @@ def load_glove_embedding(filename, vocab=None):
 
     for line in fd:
         items = line.strip().split()
+        if len(items) <= 1:
+            print(items)
         word = items[0].encode("utf-8")
         value = [float(item) for item in items[1:]]
         fan_out = len(value)
