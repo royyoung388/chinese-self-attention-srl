@@ -86,7 +86,7 @@ def add_to_record(record, item, capacity):
     return added, removed, record
 
 
-class ValidationWorker(threading.Thread):
+class ValidationWorkerThread(threading.Thread):
 
     def init(self, params):
         self._params = params
@@ -95,6 +95,15 @@ class ValidationWorker(threading.Thread):
         self.best_count = 0
         self.early_stopping = False
 
+        best_dir = params.output + "/best"
+
+        # create directory
+        if not os.path.exists(best_dir):
+            os.mkdir(best_dir)
+            self.record = []
+        else:
+            self.record = read_record(best_dir + "/top")
+
     def is_early_stopping(self):
         return self.early_stopping
 
@@ -102,13 +111,6 @@ class ValidationWorker(threading.Thread):
         params = self._params
         best_dir = params.output + "/best"
         last_checkpoint = None
-
-        # create directory
-        if not os.path.exists(best_dir):
-            os.mkdir(best_dir)
-            record = []
-        else:
-            record = read_record(best_dir + "/top")
 
         while not self._stop_end:
             try:
@@ -151,7 +153,7 @@ class ValidationWorker(threading.Thread):
 
                 # save best model
                 item = (f_score, model_name)
-                added, removed, record = add_to_record(record, item,
+                added, removed, record = add_to_record(self.record, item,
                                                        params.keep_top_k)
                 log_fd = open(best_dir + "/log", "a")
                 log_fd.write("%s: %f\n" % (model_name, f_score))
@@ -173,6 +175,7 @@ class ValidationWorker(threading.Thread):
                 # early stopping
                 if f_score > self.best_score:
                     self.best_score = f_score
+                    self.best_count = 0
                 else:
                     self.best_count += 1
 

@@ -24,6 +24,7 @@ import tagger.optimizers as optimizers
 import tagger.utils as utils
 import tagger.utils.summary as summary
 from tagger.utils.validation import ValidationWorker
+from tagger.utils.validationThread import ValidationWorkerThread
 
 
 def parse_args(args=None):
@@ -55,7 +56,8 @@ def parse_args(args=None):
                         help="Name of the model")
     parser.add_argument("--parameters", type=str, default="",
                         help="Additional hyper parameters")
-
+    parser.add_argument("--subthread", action="store_true",
+                        help="use sub thread to run validation")
     return parser.parse_args(args)
 
 
@@ -366,15 +368,13 @@ def main(args):
     counter = 0
     should_save = False
 
-    # if params.script:
-    #     thread = ValidationWorker(daemon=True)
-    #     thread.init(params)
-    #     thread.start()
-    # else:
-    #     thread = None
-
     if params.script:
-        valiation = ValidationWorker(params)
+        if params.subthread:
+            thread = ValidationWorkerThread(daemon=True)
+            thread.init(params)
+            thread.start()
+        else:
+            valiation = ValidationWorker(params)
     else:
         valiation = None
 
