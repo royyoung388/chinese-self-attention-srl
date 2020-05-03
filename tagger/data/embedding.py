@@ -5,6 +5,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import cgitb
+
 import numpy as np
 
 
@@ -17,8 +19,13 @@ def load_glove_embedding(filename, vocab=None):
         items = line.strip().split()
         if len(items) <= 1:
             print(items)
-        word = items[0].encode("utf-8")
-        value = [float(item) for item in items[1:]]
+        try:
+            word = items[0].encode("utf-8")
+            value = [float(item) for item in items[1:]]
+        except ValueError as e:
+            print(e, line[:10])
+            continue
+
         fan_out = len(value)
         emb[word] = np.array(value, "float32")
 
@@ -42,3 +49,8 @@ def load_glove_embedding(filename, vocab=None):
             new_emb[i] = emb[word]
 
     return new_emb
+
+
+if __name__ == '__main__':
+    cgitb.enable(format='text')
+    load_glove_embedding("/home/roy/Tagger/data/glove/embedding.txt")
