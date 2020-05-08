@@ -10,7 +10,7 @@ export PERL5LIB="$SRLPATH/lib:$PERL5LIB"
 export PATH="$SRLPATH/bin:$PATH"
 
 python $TAGGERPATH/tagger/bin/predictor.py \
-  --input $DATAPATH/conll2012.devel.txt \
+  --input $DATAPATH/conll2012.test.txt \
   --checkpoint train \
   --model deepatt \
   --vocabulary $DATAPATH/vocab.txt $DATAPATH/label.txt \
@@ -18,5 +18,5 @@ python $TAGGERPATH/tagger/bin/predictor.py \
   --output tmp.txt
 #,embedding=$EMBPATH/glove.6B.100d.txt
 
-python $TAGGERPATH/tagger/scripts/convert_to_conll.py tmp.txt $DATAPATH/conll2012.devel.props.gold.txt output
-perl $SRLPATH/bin/srl-eval.pl $DATAPATH/conll2012.devel.props.* output
+python $TAGGERPATH/tagger/scripts/convert_to_conll.py tmp.txt $DATAPATH/conll2012.test.props.gold.txt output
+perl $SRLPATH/bin/srl-eval.pl $DATAPATH/conll2012.test.props.* output

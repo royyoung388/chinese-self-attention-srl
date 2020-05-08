@@ -22,6 +22,7 @@ class MultiHeadAttention(Module):
         self.num_heads = num_heads
         self.hidden_size = hidden_size
         self.dropout = dropout
+        self.weights = None
 
         with utils.scope(name):
             self.qkv_transform = Affine(hidden_size, 3 * hidden_size,
@@ -50,11 +51,11 @@ class MultiHeadAttention(Module):
         if bias is not None:
             logits = logits + bias
 
-        weights = torch.nn.functional.dropout(torch.softmax(logits, dim=-1),
+        self.weights = torch.nn.functional.dropout(torch.softmax(logits, dim=-1),
                                               p=self.dropout,
                                               training=self.training)
 
-        x = torch.matmul(weights, vh)
+        x = torch.matmul(self.weights, vh)
 
         # combine heads
         output = self.o_transform(self.combine_heads(x))

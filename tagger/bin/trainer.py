@@ -57,7 +57,7 @@ def parse_args(args=None):
     parser.add_argument("--parameters", type=str, default="",
                         help="Additional hyper parameters")
     parser.add_argument("--subthread", action="store_true",
-                        help="use sub thread to run validation")
+                        help="Use sub thread to run validation")
     return parser.parse_args(args)
 
 
@@ -76,7 +76,7 @@ def default_params():
         fixed_batch_size=False,
         min_length=1,
         max_length=256,
-        buffer_size=1024,
+        buffer_size=10240,
         # Initialization
         initializer_gain=1.0,
         initializer="uniform_unit_scaling",
@@ -105,6 +105,7 @@ def default_params():
         # Plot
         plot_step=50,
         # Validation
+        subthread=False,
         keep_top_k=50,
         frequency=10,
         # Checkpoint Saving

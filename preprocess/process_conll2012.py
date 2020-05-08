@@ -1,12 +1,12 @@
 import cgitb
 import os
+import random
 import sys
 
 from subword import *
 
 cgitb.enable(format="text")
 
-MAX = 50000
 COUNT = 0
 
 input_data_path = sys.argv[1]
@@ -14,6 +14,7 @@ output_file_path = sys.argv[2]
 output_props_file = sys.argv[3]
 output_propid_file = sys.argv[4]
 output_domains_file = sys.argv[5]
+MAX = int(sys.argv[6]) if len(sys.argv) > 6 else 1000000
 
 tag_dict = {}
 
@@ -60,14 +61,6 @@ def print_new_sentence():
     global fd_out
     global domain
 
-    global MAX
-    global COUNT
-
-    """if COUNT>=MAX:
-      exit
-    else:
-      COUNT += 1"""
-
     ''' ALso output sentences without any predicates '''
     # if len(props) > 0:
     total_props += len(props)
@@ -95,6 +88,16 @@ for root, dirs, files in os.walk(input_data_path):
     for f in files:
         if not 'gold_conll' in f and not 'gold_parse_conll' in f:
             continue
+
+        # randomly choose files
+        if random.random() > MAX / 1350:
+            continue
+
+        if COUNT >= MAX:
+            break
+        else:
+            COUNT += 1
+
         # print(root, dirs, f)
         dpath = root.split('/')
         domain = '_'.join(dpath[dpath.index('annotations') + 1:-1])
@@ -201,6 +204,9 @@ for root, dirs, files in os.walk(input_data_path):
             print_new_sentence()
             fout_props.write('\n')
             total_sents2 += 1
+    else:
+        continue
+    break
 
 fout.close()
 fout_props.close()

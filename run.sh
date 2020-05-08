@@ -14,13 +14,14 @@ python $TAGGERPATH/tagger/bin/trainer.py \
   --input $DATAPATH/conll2012.train.txt \
   --output train \
   --vocabulary $DATAPATH/vocab.txt $DATAPATH/label.txt \
-  --parameters="save_summary=false,feature_size=300,hidden_size=600,filter_size=800,"`
-               `"residual_dropout=0.5,num_hidden_layers=8,attention_dropout=0.3,"`
-               `"relu_dropout=0.3,batch_size=128,optimizer=adadelta,initializer=orthogonal,"`
-               `"initializer_gain=1.0,train_steps=500000,"`
+  --parameters="save_summary=false,"`
+               `"feature_size=300,predicate_size=100,hidden_size=400,filter_size=800,"`
+               `"residual_dropout=0.5,num_hidden_layers=8,attention_dropout=0.4,"`
+               `"relu_dropout=0.4,batch_size=128,optimizer=adadelta,initializer=orthogonal,"`
+               `"initializer_gain=1.0,train_steps=60000,"`
                `"learning_rate_schedule=piecewise_constant_decay,"`
-               `"learning_rate=1,warmup_steps=4000,plot_step=200,"`
-               `"learning_rate_values=[1.0,0.5,0.25],learning_rate_boundaries=[300000,400000],"`
+               `"learning_rate=1,warmup_steps=4000,plot_step=1000,"`
+               `"learning_rate_values=[1.0,0.5,0.25],learning_rate_boundaries=[40000,50000],"`
                `"save_checkpoint_steps=1000,early_stopping=10,save_checkpoint_steps=1500,"`
                `"device_list=$DEVICE,clip_grad_norm=1.0,script=validation.sh,"`
                `"buffer_size=512,"

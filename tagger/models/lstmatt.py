@@ -13,16 +13,16 @@ import tagger.utils as utils
 from tagger.data import load_glove_embedding
 
 
-class DeepAtt(modules.Module):
+class LSTMAtt(modules.Module):
 
     def __init__(self, params, name="deepatt"):
-        super(DeepAtt, self).__init__(name=name)
+        super(LSTMAtt, self).__init__(name=name)
         self.params = params
 
         with utils.scope(name):
             self.build_embedding(params)
             self.encoding = modules.PositionalEmbedding()
-            self.encoder = DeepAttEncoder(params)
+            self.encoder = LSTMAttEncoder(params)
             self.classifier = modules.Affine(params.hidden_size,
                                              len(params.vocabulary["target"]),
                                              name="softmax")
@@ -39,7 +39,7 @@ class DeepAtt(modules.Module):
         self.embedding = torch.nn.Parameter(
             torch.empty([vocab_size, params.feature_size]))
         self.weights = torch.nn.Parameter(
-            torch.empty([2, params.predicate_size]))
+            torch.empty([2, params.feature_size]))
         self.bias = torch.nn.Parameter(torch.zeros([params.hidden_size]))
         self.add_name(self.embedding, "embedding")
         self.add_name(self.weights, "weights")
@@ -129,13 +129,13 @@ class DeepAtt(modules.Module):
 
     @staticmethod
     def default_params(name=None):
-        return DeepAtt.base_params()
+        return LSTMAtt.base_params()
 
 
-class DeepAttEncoder(modules.Module):
+class LSTMAttEncoder(modules.Module):
 
     def __init__(self, params, name="encoder"):
-        super(DeepAttEncoder, self).__init__(name=name)
+        super(LSTMAttEncoder, self).__init__(name=name)
 
         with utils.scope(name):
             self.layers = nn.ModuleList([
@@ -167,20 +167,20 @@ class AttentionSubLayer(modules.Module):
         return x + y
 
 
-class FFNSubLayer(modules.Module):
+class LSTMSubLayer(modules.Module):
 
     def __init__(self, params, dtype=None, name="ffn_layer"):
-        super(FFNSubLayer, self).__init__(name=name)
+        super(LSTMSubLayer, self).__init__(name=name)
 
         with utils.scope(name):
-            self.ffn_layer = modules.FeedForward(params.hidden_size,
-                                                 params.filter_size,
-                                                 dropout=params.relu_dropout)
+            self.lstm_layer = modules.recurrent.LSTMCell(params.hidden_size,
+                                                         params.filter_size,
+                                                         dropout=params.relu_dropout)
             self.layer_norm = modules.LayerNorm(params.hidden_size)
         self.dropout = params.residual_dropout
 
     def forward(self, x):
-        y = self.ffn_layer(self.layer_norm(x))
+        y = self.lstm_layer(self.layer_norm(x))
         y = nn.functional.dropout(y, self.dropout, self.training)
 
         return x + y
@@ -193,7 +193,7 @@ class DeepAttEncoderLayer(modules.Module):
 
         with utils.scope(name):
             self.self_attention = AttentionSubLayer(params)
-            self.feed_forward = FFNSubLayer(params)
+            self.feed_forward = LSTMSubLayer(params)
 
     def forward(self, x, bias):
         x = self.feed_forward(x)

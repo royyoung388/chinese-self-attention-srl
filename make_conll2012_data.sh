@@ -18,14 +18,15 @@ python preprocess/process_conll2012.py \
   "${SRLPATH}/conll2012.train.txt" \
   "${SRLPATH}/conll2012.train.props.gold.txt" \
   "${SRLPATH}/conll2012.propid.train.txt" \
-  "${SRLPATH}/conll2012.train.domains"
+  "${SRLPATH}/conll2012.train.domains" \
+  400
 
 python preprocess/process_conll2012.py \
   "${DEV}" \
   "${SRLPATH}/conll2012.devel.txt" \
   "${SRLPATH}/conll2012.devel.props.gold.txt" \
   "${SRLPATH}/conll2012.propid.devel.txt" \
-  "${SRLPATH}/conll2012.devel.domains"
+  "${SRLPATH}/conll2012.devel.domains" \
 
 python preprocess/process_conll2012.py \
   "${TEST}" \
