@@ -215,6 +215,7 @@ cython_debug/
 
 /data/*
 !/data/test
+!/data/special.py
 /train*
 /output
 /tmp.txt
