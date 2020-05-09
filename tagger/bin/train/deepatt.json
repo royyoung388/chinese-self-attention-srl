@@ -1,1 +1,0 @@
-{"pad": "<pad>", "bos": "<eos>", "eos": "<eos>", "unk": "<unk>", "feature_size": 100, "predicate_size": 100, "hidden_size": 200, "filter_size": 800, "num_heads": 8, "num_hidden_layers": 8, "attention_dropout": 0.3, "residual_dropout": 0.5, "relu_dropout": 0.3, "label_smoothing": 0.1, "clip_grad_norm": 1.0}
