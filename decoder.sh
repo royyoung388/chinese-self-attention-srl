@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-SRLPATH=/home/roy/Tagger/data/srl/srlconll-1.1
 TAGGERPATH=/home/roy/Tagger
-DATAPATH=/home/roy/Tagger/data/srl
-EMBPATH=/home/roy/Tagger/data/glove
+SRLPATH=$TAGGERPATH/data/srl/srlconll-1.1
+DATAPATH=$TAGGERPATH/data/srl
+EMBPATH=$TAGGERPATH/data/glove
 DEVICE=0
 
 export PYTHONPATH=$TAGGERPATH:$PYTHONPATH

@@ -37,7 +37,7 @@ python preprocess/process_conll2012.py \
   "conll2012.test.txt" \
   "conll2012.test.props.gold.txt" \
   "conll2012.propid.test.txt" \
-  "conll2012.test.domains"
+  "conll2012.test.domains" \
 
 
 

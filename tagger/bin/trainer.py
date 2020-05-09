@@ -105,7 +105,6 @@ def default_params():
         # Plot
         plot_step=1000,
         # Validation
-        subthread=False,
         keep_top_k=50,
         frequency=10,
         # Checkpoint Saving
@@ -114,7 +113,7 @@ def default_params():
         keep_top_checkpoint_max=5,
         save_summary=True,
         save_checkpoint_secs=0,
-        save_checkpoint_steps=500,
+        save_checkpoint_steps=1000,
     )
 
     return params
@@ -374,7 +373,7 @@ def main(args):
     should_save = False
 
     if params.script:
-        if params.subthread:
+        if args.subthread:
             thread = ValidationWorkerThread(daemon=True)
             thread.init(params)
             thread.start()
