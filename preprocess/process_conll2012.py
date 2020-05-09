@@ -10,19 +10,43 @@ cgitb.enable(format="text")
 COUNT = 0
 
 input_data_path = sys.argv[1]
-output_file_path = sys.argv[2]
-output_props_file = sys.argv[3]
-output_propid_file = sys.argv[4]
-output_domains_file = sys.argv[5]
-MAX = int(sys.argv[6]) if len(sys.argv) > 6 else 1000000
+output_dir = sys.argv[2]
+output_file = sys.argv[3]
+output_props_file = sys.argv[4]
+output_propid_file = sys.argv[5]
+output_domains_file = sys.argv[6]
+max_count = int(sys.argv[7]) if len(sys.argv) > 7 and int(sys.argv[7]) > 0 else 100000
+if len(sys.argv) > 8:
+    exclude_labels = sys.argv[8].split(";")
+    exclude_labels = ["B-" + label for label in exclude_labels] + ["I-" + label for label in exclude_labels]
+    exclude_labels = set(exclude_labels)
+else:
+    exclude_labels = None
 
-tag_dict = {}
+output = os.path.join(output_dir, output_file)
+output_props = os.path.join(output_dir, output_props_file)
+output_propid = os.path.join(output_dir, output_propid_file)
+output_domains = os.path.join(output_dir, output_domains_file)
 
-fout = open(output_file_path, 'w', encoding='utf-8')
-fout_props = open(output_props_file, 'w', encoding='utf-8')
-fout_propid = open(output_propid_file, 'w', encoding='utf-8')
-fd_out = open(output_domains_file, 'w', encoding='utf-8')
-# flist_out = open('filelist.out', 'w', encoding='utf-8')
+fout = open(output, 'w', encoding='utf-8')
+fout_props = open(output_props, 'w', encoding='utf-8')
+fout_propid = open(output_propid, 'w', encoding='utf-8')
+fout_domains = open(output_domains, 'w', encoding='utf-8')
+
+if exclude_labels:
+    exclude_output_dir = os.path.join(output_dir, 'exclude')
+    if not os.path.exists(exclude_output_dir):
+        os.mkdir(exclude_output_dir)
+
+    exclude_output = os.path.join(exclude_output_dir, output_file)
+    exclude_output_props = os.path.join(exclude_output_dir, output_props_file)
+    exclude_output_propid = os.path.join(exclude_output_dir, output_propid_file)
+    exclude_output_domains = os.path.join(exclude_output_dir, output_domains_file)
+
+    exclude_fout = open(exclude_output, 'w', encoding='utf-8')
+    exclude_fout_props = open(exclude_output_props, 'w', encoding='utf-8')
+    exclude_fout_propid = open(exclude_output_propid, 'w', encoding='utf-8')
+    exclude_fout_domains = open(exclude_output_domains, 'w', encoding='utf-8')
 
 total_props = 0
 total_props2 = 0
@@ -39,26 +63,22 @@ ner_counts = 0
 
 words = []
 props = []
+props_line = []
 tags = []
 spans = []
 all_props = []
 
-label_dict = {}
 
-
-def print_new_sentence():
+def print_new_sentence(fout, fout_props, fout_propid, fout_domains):
     global total_props
     global total_props2
     global total_sents
     global words
     global props
+    global props_line
     global tags
-    global span
+    global spans
     global all_props
-    global fout
-    global fout_props
-    global fout_propid
-    global fd_out
     global domain
 
     ''' ALso output sentences without any predicates '''
@@ -70,18 +90,15 @@ def print_new_sentence():
     propid_labels = ['O' for _ in words]
     for t in range(len(props)):
         assert len(tags[t]) == len(words)
-        assert tags[t][props[t]] in {"B-V", "B-I"}
+        assert tags[t][props[t]] == "B-V"
         fout.write(str(props[t]) + " " + " ".join(words) + " ||| " + " ".join(tags[t]) + "\n")
         propid_labels[props[t]] = 'V'
-        fd_out.write(domain + '\n')
+        fout_domains.write(domain + '\n')
 
+    fout_props.write(''.join(props_line))
+    fout_props.write('\n')
     fout_propid.write(" ".join(words) + " ||| " + " ".join(propid_labels) + "\n")
     total_props2 += len(all_props)
-    words = []
-    props = []
-    tags = []
-    spans = []
-    all_props = []
 
 
 for root, dirs, files in os.walk(input_data_path):
@@ -90,10 +107,10 @@ for root, dirs, files in os.walk(input_data_path):
             continue
 
         # randomly choose files
-        if random.random() > MAX / 1350:
+        if random.random() > max_count / 1350:
             continue
 
-        if COUNT >= MAX:
+        if COUNT >= max_count:
             break
         else:
             COUNT += 1
@@ -112,12 +129,15 @@ for root, dirs, files in os.walk(input_data_path):
                 #  print "Skipping dup sentence in: ", root, f
                 # else:
                 prev_words = joined_words
-                print_new_sentence()
-                fout_props.write('\n')
                 total_sents2 += 1
+
+                print_new_sentence(fout, fout_props, fout_propid, fout_domains)
+                if exclude_labels and len(set([e for t in tags for e in t]) & exclude_labels) > 0:
+                    print_new_sentence(exclude_fout, exclude_fout_props, exclude_fout_propid, exclude_fout_domains)
 
                 words = []
                 props = []
+                props_line = []
                 tags = []
                 spans = []
                 all_props = []
@@ -126,9 +146,18 @@ for root, dirs, files in os.walk(input_data_path):
             if line[0] == "#":
                 prev_words = ""
                 if len(words) > 0:
-                    print_new_sentence()
-                    fout_props.write('\n')
                     total_sents2 += 1
+
+                    print_new_sentence(fout, fout_props, fout_propid, fout_domains)
+                    if exclude_labels and len(set([e for t in tags for e in t]) & exclude_labels) > 0:
+                        print_new_sentence(exclude_fout, exclude_fout_props, exclude_fout_propid, exclude_fout_domains)
+
+                    words = []
+                    props = []
+                    props_line = []
+                    tags = []
+                    spans = []
+                    all_props = []
                 continue
 
             info = line.split()
@@ -158,12 +187,12 @@ for root, dirs, files in os.walk(input_data_path):
                 i = i.replace('R-', '')
                 i = i.replace('REL-SUP', 'REL')
                 info_re.append(i)
-            fout_props.write(lemma + '\t' + '\t'.join(info_re) + '\n')
+            props_line.append(lemma + '\t' + '\t'.join(info_re) + '\n')
+            # fout_props.write()
 
             for t in range(len(tags)):
                 arg = info[11 + t]
                 label = arg.strip("()*")
-                label_dict[arg] = 1
 
                 # special
                 if "(" in label:
@@ -201,9 +230,18 @@ for root, dirs, files in os.walk(input_data_path):
         fin.close()
         ''' Output last sentence.'''
         if len(words) > 0:
-            print_new_sentence()
-            fout_props.write('\n')
             total_sents2 += 1
+
+            print_new_sentence(fout, fout_props, fout_propid, fout_domains)
+            if exclude_labels and len(set([e for t in tags for e in t]) & exclude_labels) > 0:
+                print_new_sentence(exclude_fout, exclude_fout_props, exclude_fout_propid, exclude_fout_domains)
+
+            words = []
+            props = []
+            props_line = []
+            tags = []
+            spans = []
+            all_props = []
     else:
         continue
     break
@@ -211,7 +249,7 @@ for root, dirs, files in os.walk(input_data_path):
 fout.close()
 fout_props.close()
 fout_propid.close()
-fd_out.close()
+fout_domains.close()
 # flist_out.close()
 
 print('documents', doc_counts)

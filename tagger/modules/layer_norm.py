@@ -41,8 +41,7 @@ class LayerNorm(Module):
             nn.init.zeros_(self.bias)
 
     def forward(self, input):
-        return nn.functional.layer_norm(
-            input, self.normalized_shape, self.weight, self.bias, self.eps)
+        return nn.functional.layer_norm(input, self.normalized_shape, self.weight, self.bias, self.eps)
 
     def extra_repr(self):
         return '{normalized_shape}, eps={eps}, ' \
