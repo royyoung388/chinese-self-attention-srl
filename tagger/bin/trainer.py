@@ -374,9 +374,9 @@ def main(args):
 
     if params.script:
         if args.subthread:
-            thread = ValidationWorkerThread(daemon=True)
-            thread.init(params)
-            thread.start()
+            valiation = ValidationWorkerThread(daemon=True)
+            valiation.init(params)
+            valiation.start()
         else:
             valiation = ValidationWorker(params)
     else:
