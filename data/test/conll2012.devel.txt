@@ -1,0 +1,3 @@
+2 国外 企业 投资 中国 的 银行 ||| B-ARG0 I-ARG0 B-V B-ARG1 I-ARG1 I-ARG1
+1 企业 利用 大 运河 盈利 达 _NUMBER 元 ||| B-ARG0 B-V B-ARG1 I-ARG1 O O O O
+4 企业 利用 大 运河 盈利 达 _NUMBER 元 ||| B-ARG0 O O O B-V O B-ARG1

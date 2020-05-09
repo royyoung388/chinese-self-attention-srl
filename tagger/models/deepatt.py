@@ -22,6 +22,7 @@ class DeepAtt(modules.Module):
         with utils.scope(name):
             self.build_embedding(params)
             self.encoding = modules.PositionalEmbedding()
+            self.batch_norm = modules.BatchNorm(params.hidden_size)
             self.encoder = DeepAttEncoder(params)
             self.classifier = modules.Affine(params.hidden_size,
                                              len(params.vocabulary["target"]),
@@ -79,7 +80,8 @@ class DeepAtt(modules.Module):
         inputs = torch.cat([inputs, preds], axis=-1)
         inputs = inputs * (self.hidden_size ** 0.5)
         inputs = inputs + self.bias
-
+        # batch_size * seq_len * model_dim
+        inputs = self.batch_norm(inputs)
         inputs = nn.functional.dropout(self.encoding(inputs), self.dropout,
                                        self.training)
 
@@ -114,6 +116,7 @@ class DeepAtt(modules.Module):
             eos="<eos>",
             unk="<unk>",
             feature_size=100,
+            predicate_size=100,
             hidden_size=200,
             filter_size=800,
             num_heads=8,
@@ -161,10 +164,10 @@ class AttentionSubLayer(modules.Module):
         self.dropout = params.residual_dropout
 
     def forward(self, x, bias):
-        y = self.attention(self.layer_norm(x), bias)
+        y = self.attention(x, bias)
         y = nn.functional.dropout(y, self.dropout, self.training)
 
-        return x + y
+        return self.layer_norm(x + y)
 
 
 class FFNSubLayer(modules.Module):
@@ -180,10 +183,10 @@ class FFNSubLayer(modules.Module):
         self.dropout = params.residual_dropout
 
     def forward(self, x):
-        y = self.ffn_layer(self.layer_norm(x))
+        y = self.ffn_layer(x)
         y = nn.functional.dropout(y, self.dropout, self.training)
 
-        return x + y
+        return self.layer_norm(x + y)
 
 
 class DeepAttEncoderLayer(modules.Module):

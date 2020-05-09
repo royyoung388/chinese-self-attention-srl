@@ -1,0 +1,6 @@
+5 目前 , 通用 在 华 投资 总额 已 达 _NUMBER 美元 。 ||| O O B-ARG0 B-ARGM-LOC I-ARGM-LOC B-V O O O O O O
+2 中国 国务院 任免 _NUMBER 批 国家 工作 人员 ||| B-ARG0 I-ARG0 B-V B-ARG1 I-ARG1 I-ARG1 I-ARG1 I-ARG1
+1 ( 完 ) ||| O B-V O
+18 据 了解 , 目前 , 在 外商 投资 企业 获得 的 人民币 贷款 中 , 有 近 一半 是 中国 银行 提供 的 。 ||| O O O O O O O O O O O O O O O O B-ARG0 I-ARG0 B-V B-ARG1 I-ARG1 I-ARG1 I-ARG1 O
+5 全 年 实际 利用 外资 达 _NUMBER 美元 。 ||| B-ARG0 I-ARG0 I-ARG0 I-ARG0 I-ARG0 B-V B-ARG1 I-ARG1 O
+30 随着 中国 对 大 运河 的 整治 , 运河 航道 状况 得到 极大 改善 , 许多 企业 纷纷 看好 这 条 “ 黄金 水道 ” , 积极 在 此 投资 建厂 , 沿 河 企业 星罗棋布 。 ||| O O O O O O O O O O O O O O O B-ARG0 I-ARG0 B-ARGM-ADV O O O O O O O O B-ARGM-ADV B-ARGM-LOC I-ARGM-LOC O B-V O O O O O O

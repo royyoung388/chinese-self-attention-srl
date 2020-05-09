@@ -103,7 +103,7 @@ def default_params():
         device_list=[0],
         embedding="",
         # Plot
-        plot_step=50,
+        plot_step=1000,
         # Validation
         subthread=False,
         keep_top_k=50,
@@ -215,6 +215,10 @@ def print_variables(model):
 
 
 def save_checkpoint(step, epoch, model, optimizer, params, loss_record):
+    # save loss plot
+    plt.plot(loss_record[0], loss_record[1])
+    plt.savefig(os.path.join(params.output, "loss.png"), dpi=200)
+
     if dist.get_rank() == 0:
         state = {
             "step": step,
@@ -427,16 +431,12 @@ def main(args):
 
                 if step % params.save_checkpoint_steps == 0:
                     if should_save:
-                        plt.plot(loss_record[0], loss_record[1])
-                        plt.savefig(os.path.join(params.output, "loss.png"))
                         save_checkpoint(step, epoch, model, optimizer, params, loss_record)
                         valiation.val()
                         should_save = False
 
                 if step >= params.train_steps:
                     if should_save:
-                        plt.plot(loss_record[0], loss_record[1])
-                        plt.savefig(os.path.join(params.output, "loss.png"))
                         save_checkpoint(step, epoch, model, optimizer, params, loss_record)
                         valiation.val()
 

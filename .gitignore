@@ -214,6 +214,7 @@ dmypy.json
 cython_debug/
 
 /data/*
+!/data/test
 /train*
 /output
 /tmp.txt
