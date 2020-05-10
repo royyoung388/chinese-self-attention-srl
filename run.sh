@@ -18,7 +18,7 @@ python $TAGGERPATH/tagger/bin/trainer.py \
   --parameters="save_summary=false,"`
                `"feature_size=300,predicate_size=100,hidden_size=400,filter_size=800,"`
                `"batch_size=2048,buffer_size=10240,num_hidden_layers=10,train_steps=500000,"`
-               `"relu_dropout=0.1,residual_dropout=0.2,attention_dropout=0.1,"`
+               `"relu_dropout=0.5,residual_dropout=0.5,attention_dropout=0.5,"`
                `"optimizer=adadelta,initializer=orthogonal,initializer_gain=1.0,"`
                `"learning_rate_schedule=piecewise_constant_decay,"`
                `"learning_rate=1,warmup_steps=4000,"`
