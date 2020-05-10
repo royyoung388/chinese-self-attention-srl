@@ -215,7 +215,7 @@ def print_variables(model):
 
 def save_checkpoint(step, epoch, model, optimizer, params, loss_record):
     # save loss plot
-    plt.plot(loss_record[0], loss_record[1])
+    plt.plot(loss_record[0], loss_record[1], linewidth=1)
     plt.savefig(os.path.join(params.output, "loss.png"), dpi=200)
 
     if dist.get_rank() == 0:

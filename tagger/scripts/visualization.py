@@ -105,5 +105,7 @@ def main(args):
 
 if __name__ == '__main__':
     cgitb.enable(format='text')
+    plt.rcParams['axes.unicode_minus'] = False
     plt.rcParams['font.sans-serif'] = ['simhei']
+    seaborn.set(font='SimHei')
     main(parse_args())
