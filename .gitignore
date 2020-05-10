@@ -219,3 +219,4 @@ cython_debug/
 /train*
 /output
 /tmp.txt
+/*.png

@@ -24,7 +24,7 @@ python $TAGGERPATH/tagger/bin/trainer.py \
                `"learning_rate=1,warmup_steps=4000,"`
                `"learning_rate_values=[1.0,0.5,0.25],learning_rate_boundaries=[400000,500000],"`
                `"save_checkpoint_steps=2000,early_stopping=10,plot_step=1000,"`
-               `"device_list=$DEVICE,clip_grad_norm=1.0,script=validation.sh,"
+               `"device_list=$DEVICE,clip_grad_norm=1.0,embedding=$EMBPATH/embedding.txt,script=validation.sh,"
 
 python $TAGGERPATH/tagger/bin/trainer.py \
   --model deepatt \
@@ -41,4 +41,4 @@ python $TAGGERPATH/tagger/bin/trainer.py \
                `"learning_rate=1,warmup_steps=4000,"`
                `"learning_rate_values=[1.0,0.5,0.25],learning_rate_boundaries=[100000,110000],"`
                `"save_checkpoint_steps=2000,early_stopping=10,plot_step=1000,"`
-               `"device_list=$DEVICE,clip_grad_norm=1.0,script=validation.sh,"
+               `"device_list=$DEVICE,clip_grad_norm=1.0,embedding=$EMBPATH/embedding.txt,script=validation.sh,"

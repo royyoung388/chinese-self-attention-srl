@@ -14,7 +14,7 @@ python $TAGGERPATH/tagger/bin/predictor.py \
   --checkpoint train \
   --model deepatt \
   --vocabulary $DATAPATH/vocab.txt $DATAPATH/label.txt \
-  --parameters=device=$DEVICE \
+  --parameters=device=$DEVICE,decode_batch_size=512,embedding=$EMBPATH/embedding.txt \
   --output tmp.txt
 #,embedding=$EMBPATH/glove.6B.100d.txt
 

@@ -431,14 +431,15 @@ def main(args):
                 if step % params.save_checkpoint_steps == 0:
                     if should_save:
                         save_checkpoint(step, epoch, model, optimizer, params, loss_record)
-                        valiation.val()
+                        if not args.subthread:
+                            valiation.val()
                         should_save = False
 
                 if step >= params.train_steps:
                     if should_save:
                         save_checkpoint(step, epoch, model, optimizer, params, loss_record)
-                        valiation.val()
-
+                        if not args.subthread:
+                            valiation.val()
                     if dist.get_rank() == 0:
                         summary.close()
 

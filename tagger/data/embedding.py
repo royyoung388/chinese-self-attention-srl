@@ -23,7 +23,7 @@ def load_glove_embedding(filename, vocab=None):
             word = items[0].encode("utf-8")
             value = [float(item) for item in items[1:]]
         except ValueError as e:
-            print(e, line[:10])
+            print('load embedding error:', e, line[:10])
             continue
 
         fan_out = len(value)

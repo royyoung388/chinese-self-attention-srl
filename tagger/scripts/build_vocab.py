@@ -61,7 +61,7 @@ def parse_args():
     msg = "build vocabulary"
     parser = argparse.ArgumentParser(description=msg)
 
-    msg = "input corpus"
+    msg = "input data"
     parser.add_argument("corpus", help=msg)
     msg = "output vocabulary name"
     parser.add_argument("output", default="vocab.txt", help=msg)

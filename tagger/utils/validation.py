@@ -122,9 +122,8 @@ class ValidationWorker(object):
             child = subprocess.Popen("bash %s" % params.script,
                                      shell=True, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
-            info = child.communicate()
+            info = child.communicate()[0]
             print(info)
-            info = info[0]
 
             if not info:
                 return
