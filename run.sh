@@ -10,14 +10,14 @@ export PERL5LIB="$SRLPATH/lib:$PERL5LIB"
 export PATH="$SRLPATH/bin:$PATH"
 
 python $TAGGERPATH/tagger/bin/trainer.py \
-  --model deepatt \
+  --model lstmatt \
   --subthread \
   --input $DATAPATH/conll2012.train.txt \
   --output train \
   --vocabulary $DATAPATH/vocab.txt $DATAPATH/label.txt \
   --parameters="save_summary=false,"`
                `"feature_size=300,predicate_size=100,hidden_size=400,filter_size=800,"`
-               `"batch_size=2048,buffer_size=10240,num_hidden_layers=8,train_steps=500000,"`
+               `"batch_size=2048,buffer_size=10240,num_hidden_layers=12,train_steps=500000,"`
                `"relu_dropout=0.2,residual_dropout=0.3,attention_dropout=0.2,lstm_dropout=0.2,"`
                `"optimizer=adadelta,initializer=orthogonal,"`
                `"learning_rate_schedule=piecewise_constant_decay,"`
