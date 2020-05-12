@@ -10,7 +10,7 @@ export PERL5LIB="$SRLPATH/lib:$PERL5LIB"
 export PATH="$SRLPATH/bin:$PATH"
 
 python $TAGGERPATH/tagger/bin/trainer.py \
-  --model lstmatt \
+  --model deepatt \
   --subthread \
   --input $DATAPATH/conll2012.train.txt \
   --output train \
