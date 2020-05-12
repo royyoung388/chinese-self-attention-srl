@@ -40,7 +40,7 @@ class LSTMAtt(modules.Module):
         self.embedding = torch.nn.Parameter(
             torch.empty([vocab_size, params.feature_size]))
         self.weights = torch.nn.Parameter(
-            torch.empty([2, params.feature_size]))
+            torch.empty([2, params.predicate_size]))
         self.bias = torch.nn.Parameter(torch.zeros([params.hidden_size]))
         self.add_name(self.embedding, "embedding")
         self.add_name(self.weights, "weights")
