@@ -8,9 +8,11 @@ from __future__ import print_function
 import cgitb
 
 import numpy as np
+from gensim.models import FastText
+from gensim.test.utils import datapath
 
 
-def load_glove_embedding(filename, vocab=None):
+def load_embedding(filename, vocab=None):
     fd = open(filename, "r")
     emb = {}
     fan_out = 0
@@ -51,6 +53,34 @@ def load_glove_embedding(filename, vocab=None):
     return new_emb
 
 
+# def load_fasttext(filename, vocab=None, dim=300):
+#     corpus_file = datapath('lee_background.cor')  # absolute path to corpus
+#     model = FastText(size=dim, window=3, min_count=3)
+#     model.build_vocab(corpus_file=corpus_file)  # scan over corpus to build the vocabulary
+#     total_words = model.corpus_total_words  # number of words in the corpus
+#     model.train(corpus_file=corpus_file, total_words=total_words, epochs=5)
+#
+#     ivoc = {}
+#
+#     if vocab:
+#         for item in vocab:
+#             ivoc[vocab[item]] = item
+#
+#     new_emb = np.zeros([len(ivoc), dim], "float32")
+#
+#     for i in ivoc:
+#         word = ivoc[i]
+#         if word not in model.wv.vocab:
+#             fan_in = len(ivoc)
+#             scale = 3.0 / max(1.0, (fan_in + dim) / 2.0)
+#             new_emb[i] = np.random.uniform(-scale, scale, [dim])
+#         else:
+#             new_emb[i] = model.wv[word]
+#
+#     return new_emb
+
+
 if __name__ == '__main__':
     cgitb.enable(format='text')
-    load_glove_embedding("/home/roy/Tagger/data/glove/embedding.txt")
+    # load_embedding("/home/roy/Tagger/data/glove/embedding.txt")
+    # load_fasttext("/home/roy/Tagger/data/glove/embedding.txt")

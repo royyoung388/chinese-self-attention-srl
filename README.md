@@ -58,3 +58,6 @@ TAGGERPATH=本项目根目录
 ```shell script
 python tagger/scripts/visualization.py train visual.txt --embedding EMBEDDING
 ```
+
+## 使用预训练向量
+注意文件开头如果是字典长度的信息,则该行需要删除

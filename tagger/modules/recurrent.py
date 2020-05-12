@@ -9,10 +9,9 @@ import torch
 import torch.nn as nn
 
 import tagger.utils as utils
-
-from tagger.modules.module import Module
 from tagger.modules.affine import Affine
 from tagger.modules.layer_norm import LayerNorm
+from tagger.modules.module import Module
 
 
 class GRUCell(Module):
@@ -82,7 +81,14 @@ class LSTMCell(Module):
 
         self.reset_parameters()
 
-    def forward(self, x, state):
+    def forward(self, x, state, mask):
+        """
+
+        :param x: batch * seq * hidden
+        :param state:
+        :param mask: batch * seq
+        :return: batch * hidden
+        """
         c, h = state
 
         gates = self.gates(torch.cat([x, h], 1))
@@ -104,6 +110,8 @@ class LSTMCell(Module):
         else:
             new_h = o * self.activation(new_c)
 
+        new_c, new_h = self.mask_state((new_c, new_h), (c, h), mask)
+
         return new_h, (new_c, new_h)
 
     def init_state(self, batch_size, dtype, device):
@@ -114,9 +122,18 @@ class LSTMCell(Module):
         return c, h
 
     def mask_state(self, state, prev_state, mask):
+        """
+
+        :param state:
+        :param prev_state:
+        :param mask: [batch]
+        :return:
+        """
         c, h = state
         prev_c, prev_h = prev_state
+        # [batch, 1]
         mask = mask[:, None]
+        # batch * hidden_size
         new_c = mask * c + (1.0 - mask) * prev_c
         new_h = mask * h + (1.0 - mask) * prev_h
         return new_c, new_h
@@ -132,7 +149,6 @@ class LSTMCell(Module):
             self.gates.orthogonal_initialize()
         else:
             raise ValueError("Unknown initializer %d" % initializer)
-
 
 
 class HighwayLSTMCell(Module):
@@ -210,7 +226,6 @@ class DynamicLSTMCell(Module):
                                 name="gates")
             self.topk_gate = Affine(input_size + output_size,
                                     num_cells, name="controller")
-
 
         self.reset_parameters()
 

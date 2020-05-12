@@ -165,7 +165,7 @@ def main(args):
         counter = 0
 
         if params.embedding:
-            embedding = data.load_glove_embedding(params.embedding)
+            embedding = data.load_embedding(params.embedding)
         else:
             embedding = None
 

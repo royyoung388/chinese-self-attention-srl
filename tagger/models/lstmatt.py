@@ -10,7 +10,8 @@ import torch.nn as nn
 
 import tagger.modules as modules
 import tagger.utils as utils
-from tagger.data import load_glove_embedding
+from tagger.data import load_embedding
+from tagger.modules import LSTMCell
 
 
 class LSTMAtt(modules.Module):
@@ -84,7 +85,7 @@ class LSTMAtt(modules.Module):
                                        self.training)
 
         enc_attn_bias = enc_attn_bias.to(inputs)
-        encoder_output = self.encoder(inputs, enc_attn_bias)
+        encoder_output = self.encoder(inputs, enc_attn_bias, mask)
         logits = self.classifier(encoder_output)
 
         return logits
@@ -96,7 +97,7 @@ class LSTMAtt(modules.Module):
     def load_embedding(self, path):
         if not path:
             return
-        emb = load_glove_embedding(path, self.params.lookup["source"])
+        emb = load_embedding(path, self.params.lookup["source"])
 
         with torch.no_grad():
             self.embedding.copy_(torch.tensor(emb))
@@ -114,6 +115,7 @@ class LSTMAtt(modules.Module):
             eos="<eos>",
             unk="<unk>",
             feature_size=100,
+            predicate_size=100,
             hidden_size=200,
             filter_size=800,
             num_heads=8,
@@ -121,6 +123,7 @@ class LSTMAtt(modules.Module):
             attention_dropout=0.0,
             residual_dropout=0.1,
             relu_dropout=0.0,
+            lstm_dropout=0.0,
             label_smoothing=0.1,
             clip_grad_norm=0.0
         )
@@ -139,12 +142,27 @@ class LSTMAttEncoder(modules.Module):
 
         with utils.scope(name):
             self.layers = nn.ModuleList([
-                DeepAttEncoderLayer(params, name="layer_%d" % i)
+                LSTMAttEncoderLayer(params, name="layer_%d" % i)
                 for i in range(params.num_hidden_layers)])
 
-    def forward(self, x, bias):
+    def forward(self, x, bias, mask):
         for layer in self.layers:
-            x = layer(x, bias)
+            x = layer(x, bias, mask)
+        return x
+
+
+class LSTMAttEncoderLayer(modules.Module):
+
+    def __init__(self, params, name="layer"):
+        super(LSTMAttEncoderLayer, self).__init__(name=name)
+
+        with utils.scope(name):
+            self.lstm = LSTMSubLayer(params)
+            self.self_attention = AttentionSubLayer(params)
+
+    def forward(self, x, bias, mask):
+        x = self.lstm(x, mask)
+        x = self.self_attention(x, bias)
         return x
 
 
@@ -161,10 +179,10 @@ class AttentionSubLayer(modules.Module):
         self.dropout = params.residual_dropout
 
     def forward(self, x, bias):
-        y = self.attention(self.layer_norm(x), bias)
+        y = self.attention(x, bias)
         y = nn.functional.dropout(y, self.dropout, self.training)
 
-        return x + y
+        return self.layer_norm(x + y)
 
 
 class LSTMSubLayer(modules.Module):
@@ -173,29 +191,34 @@ class LSTMSubLayer(modules.Module):
         super(LSTMSubLayer, self).__init__(name=name)
 
         with utils.scope(name):
-            self.lstm_layer = modules.recurrent.LSTMCell(params.hidden_size,
-                                                         params.filter_size,
-                                                         dropout=params.relu_dropout)
+            self.lstm_forward = LSTMCell(params.hidden_size, params.hidden_size // 2,
+                                         normalization=True)
+            self.lstm_back = LSTMCell(params.hidden_size, params.hidden_size // 2,
+                                      normalization=True)
             self.layer_norm = modules.LayerNorm(params.hidden_size)
-        self.dropout = params.residual_dropout
+        self.dropout = params.lstm_dropout
 
-    def forward(self, x):
-        y = self.lstm_layer(self.layer_norm(x))
+    def forward(self, x, mask):
+        """
+
+        :param x: batch * seq * hidden_size
+        :param mask: batch * seq. have word = 1
+        :return:
+        """
+        shape = x.shape
+
+        c_for = torch.zeros([shape[0], shape[2] // 2]).cuda()
+        h_for = torch.zeros([shape[0], shape[2] // 2]).cuda()
+        c_back = torch.zeros([shape[0], shape[2] // 2]).cuda()
+        h_back = torch.zeros([shape[0], shape[2] // 2]).cuda()
+        y = torch.empty(shape).cuda()
+
+        for i, item in enumerate(x.unbind(1)):
+            y_for, (c_for, h_for) = self.lstm_forward(x[:, i], (c_for, h_for), mask[:, i])
+            y_back, (c_back, h_back) = self.lstm_back(x[:, i], (c_back, h_back), mask[:, i])
+            # batch * hidden
+            y[:, i] = torch.cat((y_for, y_back), 1)
+
         y = nn.functional.dropout(y, self.dropout, self.training)
 
-        return x + y
-
-
-class DeepAttEncoderLayer(modules.Module):
-
-    def __init__(self, params, name="layer"):
-        super(DeepAttEncoderLayer, self).__init__(name=name)
-
-        with utils.scope(name):
-            self.self_attention = AttentionSubLayer(params)
-            self.feed_forward = LSTMSubLayer(params)
-
-    def forward(self, x, bias):
-        x = self.feed_forward(x)
-        x = self.self_attention(x, bias)
-        return x
+        return self.layer_norm(x + y)

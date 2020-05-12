@@ -10,7 +10,7 @@ import torch.nn as nn
 
 import tagger.modules as modules
 import tagger.utils as utils
-from tagger.data import load_glove_embedding
+from tagger.data import load_embedding
 
 
 class DeepAtt(modules.Module):
@@ -66,7 +66,9 @@ class DeepAtt(modules.Module):
     def encode(self, features):
         seq = features["inputs"]
         pred = features["preds"]
+        # have word = 1
         mask = torch.ne(seq, 0).float().cuda()
+        # have word = 0
         enc_attn_bias = self.masking_bias(mask)
 
         inputs = torch.nn.functional.embedding(seq, self.embedding)
@@ -98,7 +100,7 @@ class DeepAtt(modules.Module):
     def load_embedding(self, path):
         if not path:
             return
-        emb = load_glove_embedding(path, self.params.lookup["source"])
+        emb = load_embedding(path, self.params.lookup["source"])
 
         with torch.no_grad():
             self.embedding.copy_(torch.tensor(emb))
@@ -121,9 +123,11 @@ class DeepAtt(modules.Module):
             filter_size=800,
             num_heads=8,
             num_hidden_layers=10,
+            num_lstm_layer=2,
             attention_dropout=0.0,
             residual_dropout=0.1,
             relu_dropout=0.0,
+            lstm_dropout=0.0,
             label_smoothing=0.1,
             clip_grad_norm=0.0
         )
@@ -148,6 +152,21 @@ class DeepAttEncoder(modules.Module):
     def forward(self, x, bias):
         for layer in self.layers:
             x = layer(x, bias)
+        return x
+
+
+class DeepAttEncoderLayer(modules.Module):
+
+    def __init__(self, params, name="layer"):
+        super(DeepAttEncoderLayer, self).__init__(name=name)
+
+        with utils.scope(name):
+            self.self_attention = AttentionSubLayer(params)
+            self.feed_forward = FFNSubLayer(params)
+
+    def forward(self, x, bias):
+        x = self.feed_forward(x)
+        x = self.self_attention(x, bias)
         return x
 
 
@@ -187,18 +206,3 @@ class FFNSubLayer(modules.Module):
         y = nn.functional.dropout(y, self.dropout, self.training)
 
         return self.layer_norm(x + y)
-
-
-class DeepAttEncoderLayer(modules.Module):
-
-    def __init__(self, params, name="layer"):
-        super(DeepAttEncoderLayer, self).__init__(name=name)
-
-        with utils.scope(name):
-            self.self_attention = AttentionSubLayer(params)
-            self.feed_forward = FFNSubLayer(params)
-
-    def forward(self, x, bias):
-        x = self.feed_forward(x)
-        x = self.self_attention(x, bias)
-        return x

@@ -81,7 +81,7 @@ def main(args):
     dataset = data.get_dataset(args.data, "infer", params)
 
     if args.embedding:
-        embedding = data.load_glove_embedding(args.embedding)
+        embedding = data.load_embedding(args.embedding)
     else:
         embedding = None
 
