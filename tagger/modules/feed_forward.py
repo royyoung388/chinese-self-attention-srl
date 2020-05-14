@@ -33,7 +33,7 @@ class FeedForward(Module):
         self.reset_parameters()
 
     def forward(self, x):
-        h = nn.functional.celu(self.input_transform(x))
+        h = nn.functional.relu(self.input_transform(x))
         h = nn.functional.dropout(h, self.dropout, self.training)
         return self.output_transform(h)
 

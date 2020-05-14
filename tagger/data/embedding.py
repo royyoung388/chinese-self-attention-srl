@@ -8,8 +8,6 @@ from __future__ import print_function
 import cgitb
 
 import numpy as np
-from gensim.models import FastText
-from gensim.test.utils import datapath
 
 
 def load_embedding(filename, vocab=None):
